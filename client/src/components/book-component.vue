@@ -4,7 +4,7 @@
       <div class="col-sm-10">
         <h1>Bücher</h1>
         <hr><br><br>
-        <alert :message="message"/>
+        <alert :message="message" v-if="showMessage"/>
         <button type="button" class="btn btn-success btn-sm" v-b-modal.book-modal>
           Buch hinzufügen
         </button>
@@ -87,6 +87,7 @@ export default {
         read: [],
       },
       message: '',
+      showMessage: false,
     };
   },
   components: {
@@ -110,6 +111,7 @@ export default {
         .then(() => {
           this.getBooks();
           this.message = 'Buch hinzugefügt.';
+          this.showMessage = true;
         })
         .catch((error) => {
           // eslint-disable-next-line
