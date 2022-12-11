@@ -184,7 +184,7 @@ export default {
       axios.put(path, payload)
         .then(() => {
           this.getBooks();
-          this.message = 'Book updated!';
+          this.message = 'Buch aktualisiert!';
           this.showMessage = true;
         })
         .catch((error) => {

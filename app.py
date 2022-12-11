@@ -43,7 +43,7 @@ def all_books():
             'author': post_data.get('author'),
             'read': post_data.get('read')
         })
-        response_object['message'] = 'Book added!'
+        response_object['message'] = 'Buch hinzugefügt.'
     return response_object
 
 
