@@ -94,7 +94,7 @@ export default {
   },
   methods: {
     getBooks() {
-      const path = 'http://192.168.178.27:9090/books';
+      const path = `${process.env.VUE_APP_API_URL}/books`;
       axios.get(path)
         .then((res) => {
           this.books = res.data.books;
@@ -105,7 +105,7 @@ export default {
         });
     },
     addBook(payload) {
-      const path = 'http://192.168.178.27:9090/books';
+      const path = `${process.env.VUE_APP_API_URL}/books`;
       axios.post(path, payload)
         .then(() => {
           this.getBooks();
