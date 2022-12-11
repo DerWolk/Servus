@@ -3,7 +3,8 @@
     <div class="row">
       <div class="col-sm-10">
         <h1>Bücher</h1>
-        <hr><br><br>
+        <hr>
+        <br><br>
         <alert :message="message" v-if="showMessage"/>
         <button type="button" class="btn btn-success btn-sm" v-b-modal.book-modal>
           Buch hinzufügen
@@ -28,8 +29,15 @@
             </td>
             <td>
               <div class="btn-group" role="group">
-                <button type="button" class="btn btn-warning btn-sm">Aktualisieren</button>
-                <button type="button" class="btn btn-danger btn-sm">Löschen</button>
+                <button type="button"
+                        class="btn btn-warning btn-sm"
+                        v-b-modal.book-update-modal
+                        @click="editBook(book)">Aktualisieren
+                </button>
+                <button type="button"
+                        class="btn btn-danger btn-sm"
+                        @click="onDeleteBook(book)">Löschen
+                </button>
               </div>
             </td>
           </tr>
@@ -69,6 +77,40 @@
         <b-button type="reset" variant="danger">Zurücksetzen</b-button>
       </b-form>
     </b-modal>
+    <b-modal ref="editBookModal"
+             id="book-update-modal"
+             title="Aktualisieren"
+             hide-footer>
+      <b-form @submit="onSubmitUpdate" @reset="onResetUpdate" class="w-100">
+        <b-form-group id="form-title-edit-group"
+                      label="Titel:"
+                      label-for="form-title-edit-input">
+          <b-form-input id="form-title-edit-input"
+                        type="text"
+                        v-model="editForm.title"
+                        required
+                        placeholder="Titel eingeben"/>
+        </b-form-group>
+        <b-form-group id="form-author-edit-group"
+                      label="Autor:"
+                      label-for="form-author-edit-input">
+          <b-form-input id="form-title-edit-input"
+                        type="text"
+                        v-model="editForm.author"
+                        required
+                        placeholder="Autor eingeben"/>
+        </b-form-group>
+        <b-form-group id="form-read-edit-group">
+          <b-form-checkbox-group v-model="editForm.read" id="form-checks">
+            <b-form-checkbox value="true">Gelesen</b-form-checkbox>
+          </b-form-checkbox-group>
+        </b-form-group>
+        <b-button-group>
+          <b-button type="submit" variant="primary">Aktualisieren</b-button>
+          <b-button type="reset" variant="danger">Abbrechen</b-button>
+        </b-button-group>
+      </b-form>
+    </b-modal>
   </div>
 </template>
 
@@ -86,6 +128,12 @@ export default {
         author: '',
         read: [],
       },
+      editForm: {
+        id: '',
+        title: '',
+        author: '',
+        read: [],
+      },
       message: '',
       showMessage: false,
     };
@@ -94,6 +142,15 @@ export default {
     alert: Alert,
   },
   methods: {
+    initForm() {
+      this.addBookForm.title = '';
+      this.addBookForm.author = '';
+      this.addBookForm.read = [];
+      this.editForm.id = '';
+      this.editForm.title = '';
+      this.editForm.author = '';
+      this.editForm.read = [];
+    },
     getBooks() {
       const path = `${process.env.VUE_APP_API_URL}/books`;
       axios.get(path)
@@ -119,10 +176,39 @@ export default {
           this.getBooks();
         });
     },
-    initForm() {
-      this.addBookForm.title = '';
-      this.addBookForm.author = '';
-      this.addBookForm.read = [];
+    editBook(book) {
+      this.editForm = book;
+    },
+    updateBook(payload, bookID) {
+      const path = `${process.env.VUE_APP_API_URL}/books/${bookID}`;
+      axios.put(path, payload)
+        .then(() => {
+          this.getBooks();
+          this.message = 'Book updated!';
+          this.showMessage = true;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+          this.getBooks();
+        });
+    },
+    removeBook(bookID) {
+      const path = `${process.env.VUE_APP_API_URL}/books/${bookID}`;
+      axios.delete(path)
+        .then(() => {
+          this.getBooks();
+          this.message = 'Buch entfernt.';
+          this.showMessage = true;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+          this.getBooks();
+        });
+    },
+    onDeleteBook(book) {
+      this.removeBook(book.id);
     },
     onSubmit(evt) {
       evt.preventDefault();
@@ -137,10 +223,28 @@ export default {
       this.addBook(payload);
       this.initForm();
     },
+    onSubmitUpdate(evt) {
+      evt.preventDefault();
+      this.$refs.editBookModal.hide();
+      let read = false;
+      if (this.editForm.read[0]) read = true;
+      const payload = {
+        title: this.editForm.title,
+        author: this.editForm.author,
+        read,
+      };
+      this.updateBook(payload, this.editForm.id);
+    },
     onReset(evt) {
       evt.preventDefault();
       this.$refs.addBookModal.hide();
       this.initForm();
+    },
+    onResetUpdate(evt) {
+      evt.preventDefault();
+      this.$refs.editBookModal.hide();
+      this.initForm();
+      this.getBooks();
     },
   },
   created() {
